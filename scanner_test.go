@@ -21,7 +21,7 @@ func (np *NamePrint) Action() {
 	log.Println(s)
 }
 
-func runTask(task interface{}) {
+func runTask(task Task) {
 	reflect.ValueOf(task).MethodByName("Action").Call([]reflect.Value{})
 }
 

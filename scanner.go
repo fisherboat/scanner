@@ -17,7 +17,7 @@ type Scanner struct {
 	p  *ants.PoolWithFunc
 }
 
-func New(size int, fn func(task interface{})) (*Scanner, error) {
+func New(size int, fn func(task Task)) (*Scanner, error) {
 	if size <= 0 {
 		return nil, errors.New("Size value to small")
 	}
@@ -26,14 +26,14 @@ func New(size int, fn func(task interface{})) (*Scanner, error) {
 		wg: sync.WaitGroup{},
 	}
 	p, _ := ants.NewPoolWithFunc(size, func(task interface{}) {
-		fn(task)
+		fn(task.(Task))
 		scanner.wg.Done()
 	})
 	scanner.p = p
 	return &scanner, nil
 }
 
-func (s *Scanner) PushTask(task interface{}) {
+func (s *Scanner) PushTask(task Task) {
 	s.wg.Add(1)
 	_ = s.p.Invoke(task)
 }
