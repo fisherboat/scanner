@@ -12,6 +12,7 @@ import (
 var names = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"}
 
 type NamePrint struct {
+	s    *Scanner
 	name string
 }
 
@@ -26,10 +27,10 @@ func runTask(task Task) {
 }
 
 func TestPrintName(t *testing.T) {
-	s, _ := New(20, runTask)
+	s, _ := New(1, runTask)
 	defer s.Close()
 	for _, name := range names {
-		np := NamePrint{name}
+		np := NamePrint{s, name}
 		s.PushTask(&np)
 	}
 	s.Wait()
