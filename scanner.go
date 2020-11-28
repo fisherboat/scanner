@@ -3,9 +3,6 @@ package scanner
 import (
 	"errors"
 	"fmt"
-	"sync"
-
-	"github.com/panjf2000/ants"
 )
 
 type Task interface {
@@ -13,39 +10,34 @@ type Task interface {
 }
 
 type Scanner struct {
-	wg sync.WaitGroup
-	p  *ants.PoolWithFunc
+	tasks   chan *Task
+	runTask func(task *Task)
 }
 
-func New(size int, fn func(task Task)) (*Scanner, error) {
+func New(size int, fn func(task *Task)) (*Scanner, error) {
 	if size <= 0 {
 		return nil, errors.New("Size value to small")
 	}
-
 	scanner := Scanner{
-		wg: sync.WaitGroup{},
+		tasks:   make(chan *Task, size),
+		runTask: fn,
 	}
-	p, _ := ants.NewPoolWithFunc(size, func(task interface{}) {
-		fn(task.(Task))
-		scanner.wg.Done()
-	})
-	scanner.p = p
 	return &scanner, nil
 }
 
 func (s *Scanner) PushTask(task Task) {
-	s.wg.Add(1)
-	_ = s.p.Invoke(task)
+	go func(task Task) {
+		s.tasks <- &task
+	}(task)
+}
+
+func (s *Scanner) Running() {
+	fmt.Println("Running")
+	for task := range s.tasks {
+		go s.runTask(task)
+	}
 }
 
 func (s *Scanner) Close() {
-	s.p.Release()
-}
-
-func (s *Scanner) Run() {
-	fmt.Printf("running goroutines: %d\n", s.p.Running())
-}
-
-func (s *Scanner) Wait() {
-	s.wg.Wait()
+	close(s.tasks)
 }

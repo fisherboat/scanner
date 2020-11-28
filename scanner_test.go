@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -18,21 +17,18 @@ type NamePrint struct {
 
 func (np *NamePrint) Action() {
 	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
-	s := fmt.Sprintf("%s: has been complete", np.name)
-	log.Println(s)
+	fmt.Println("has been complete: ", np)
 }
 
-func runTask(task Task) {
-	reflect.ValueOf(task).MethodByName("Action").Call([]reflect.Value{})
+func runTask(task *Task) {
+	reflect.ValueOf(*task).MethodByName("Action").Call([]reflect.Value{})
 }
 
 func TestPrintName(t *testing.T) {
-	s, _ := New(1, runTask)
-	defer s.Close()
+	s, _ := New(10, runTask)
 	for _, name := range names {
 		np := NamePrint{s, name}
 		s.PushTask(&np)
 	}
-	s.Wait()
-	s.Run()
+	s.Running()
 }
