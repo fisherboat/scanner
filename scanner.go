@@ -1,8 +1,7 @@
 package scanner
 
 import (
-	"errors"
-	"fmt"
+	"sync"
 )
 
 type Task interface {
@@ -10,34 +9,26 @@ type Task interface {
 }
 
 type Scanner struct {
-	tasks   chan *Task
-	runTask func(task *Task)
+	wg      sync.WaitGroup
+	runTask func(task Task)
 }
 
-func New(size int, fn func(task *Task)) (*Scanner, error) {
-	if size <= 0 {
-		return nil, errors.New("Size value to small")
-	}
+func New(fn func(task Task)) *Scanner {
 	scanner := Scanner{
-		tasks:   make(chan *Task, size),
+		wg:      sync.WaitGroup{},
 		runTask: fn,
 	}
-	return &scanner, nil
+	return &scanner
 }
 
 func (s *Scanner) PushTask(task Task) {
+	s.wg.Add(1)
 	go func(task Task) {
-		s.tasks <- &task
+		defer s.wg.Done()
+		s.runTask(task)
 	}(task)
 }
 
-func (s *Scanner) Running() {
-	fmt.Println("Running")
-	for task := range s.tasks {
-		go s.runTask(task)
-	}
-}
-
 func (s *Scanner) Close() {
-	close(s.tasks)
+	s.wg.Wait()
 }

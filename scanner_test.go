@@ -20,15 +20,15 @@ func (np *NamePrint) Action() {
 	fmt.Println("has been complete: ", np)
 }
 
-func runTask(task *Task) {
-	reflect.ValueOf(*task).MethodByName("Action").Call([]reflect.Value{})
+func runTask(task Task) {
+	reflect.ValueOf(task).MethodByName("Action").Call([]reflect.Value{})
 }
 
 func TestPrintName(t *testing.T) {
-	s, _ := New(10, runTask)
+	s := New(runTask)
+	defer s.Close()
 	for _, name := range names {
 		np := NamePrint{s, name}
 		s.PushTask(&np)
 	}
-	s.Running()
 }
