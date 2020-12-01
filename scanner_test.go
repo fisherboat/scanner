@@ -25,7 +25,7 @@ func runTask(task Task) {
 }
 
 func TestPrintName(t *testing.T) {
-	s := New(runTask)
+	s := New(5, runTask)
 	defer s.Close()
 	for _, name := range names {
 		np := NamePrint{s, name}
