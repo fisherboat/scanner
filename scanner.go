@@ -34,9 +34,9 @@ func New(size int, fn func(task Task)) *Scanner {
 }
 
 func (s *Scanner) PushTask(task Task) {
+	s.wg.Add(1)
 	go func(task Task) {
 		s.workers <- task
-		s.wg.Add(1)
 	}(task)
 }
 
